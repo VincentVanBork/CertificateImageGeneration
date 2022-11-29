@@ -1,0 +1,15 @@
+*.xlsx
+*.csv
+*.zip
+*.png
+*.pdf
+
+text/*
+!text/.keep
+
+secrets/*
+!secrets/config.example.toml
+
+
+certs/*
+!certs/.keep
