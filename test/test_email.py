@@ -4,6 +4,8 @@ from email.message import EmailMessage
 import configparser
 from pathlib import Path
 
+TEST_EMAIL = ""
+
 
 def guess_type(file):
     print("file: ", file)
@@ -26,35 +28,33 @@ smtp_port = int(config["server"]["port"])
 
 username = str(config["credentials"]["user"])
 password = str(config["credentials"]["pass"])
+print(smtp_host, smtp_port, username, password)
 
-directory = "./certs"
 smtp = smtplib.SMTP(smtp_host, smtp_port)
 smtp.starttls()  # for using port 587
 smtp.login(username, password)
 
-files = Path(directory).glob("*")
+to_user = TEST_EMAIL
+msg = EmailMessage()
+msg["Subject"] = "Certyfikat uczestnictwa Integralia 2023"
+msg["From"] = username
+msg["To"] = to_user
+html_content_path = Path("./text/test.html")
+html_types = guess_type(html_content_path)
 
-for file in files:
-    to_user = file.name.removesuffix(".png")
+with html_content_path.open("rb") as textb:
+    msg.set_content(textb.read(), maintype=html_types[0], subtype=html_types[1])
+file = Path(f"./certs/{TEST_EMAIL}")
 
-    msg = EmailMessage()
-    msg["Subject"] = "Certyfikat uczestnictwa Integralia 2023"
-    msg["From"] = username
-    msg["To"] = to_user
-    html_content_path = Path("./text/text.html")
-    html_types = guess_type(html_content_path)
-    # Set email content
-    with html_content_path.open("rb") as textb:
-        msg.set_content(textb.read(), maintype=html_types[0], subtype=html_types[1])
-    print(to_user)
-    maintype, subtype = guess_type(file)
-    with file.open("rb") as fb:
-        msg.add_attachment(
-            fb.read(),
-            maintype=maintype,
-            subtype=subtype,
-            filename="Certyfikat Integralia 2023.png",
-        )
-    smtp.send_message(msg)
-
+print(to_user)
+maintype, subtype = guess_type(file)
+with file.open("rb") as fb:
+    msg.add_attachment(
+        fb.read(),
+        maintype=maintype,
+        subtype=subtype,
+        filename="Certyfikat Integralia 2023.png",
+    )
+smtp.send_message(msg)
+print("Sent to:", to_user)
 smtp.quit()
